@@ -60,3 +60,15 @@ out/
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+
+# ---------------------
+# Oracle Client (Optional)
+# ---------------------
+oracle_client/
+instantclient_*/ 
+
+# ---------------------
+# Temp Files
+# ---------------------
+*.tmp
+*.log
