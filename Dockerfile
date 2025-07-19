@@ -1,42 +1,30 @@
-# ----------------------
-# Base Image
-# ----------------------
-FROM node:18-slim
+# Use Node.js 18
+FROM node:18-bullseye
 
-# Install required system packages
-RUN apt-get update && apt-get install -y \
-    libaio1 unzip wget build-essential curl \
-    && rm -rf /var/lib/apt/lists/*
+# Install required tools
+RUN apt-get update && apt-get install -y wget unzip libaio1 && rm -rf /var/lib/apt/lists/*
 
-# ----------------------
-# Install Oracle Instant Client
-# ----------------------
+# Download and install Oracle Instant Client 23.9 Basic Lite
 WORKDIR /opt/oracle
+RUN wget https://download.oracle.com/otn_software/linux/instantclient/239000/instantclient-basiclite-linux.x64-23.9.0.24.0dbru.zip \
+    && unzip instantclient-basiclite-linux.x64-23.9.0.24.0dbru.zip \
+    && rm instantclient-basiclite-linux.x64-23.9.0.24.0dbru.zip \
+    && echo /opt/oracle/instantclient_23_9 > /etc/ld.so.conf.d/oracle-instantclient.conf \
+    && ldconfig
 
-# Download Instant Client Basic Lite (23.8)
-RUN wget https://download.oracle.com/otn_software/linux/instantclient/238000/instantclient-basiclite-linux.x64-23.8.0.24.09.zip \
-    && unzip instantclient-basiclite-linux.x64-23.8.0.24.09.zip \
-    && rm instantclient-basiclite-linux.x64-23.8.0.24.09.zip
+# Set environment variables for Oracle
+ENV LD_LIBRARY_PATH=/opt/oracle/instantclient_23_9:$LD_LIBRARY_PATH
+ENV PATH=/opt/oracle/instantclient_23_9:$PATH
 
-# Set environment variables for Oracle Client
-ENV LD_LIBRARY_PATH=/opt/oracle/instantclient_23_8
-ENV PATH=$LD_LIBRARY_PATH:$PATH
-
-# ----------------------
-# App Setup
-# ----------------------
+# Copy project files
 WORKDIR /app
-COPY package*.json ./
-RUN npm install
-
 COPY . .
 
-# ----------------------
-# Expose Port
-# ----------------------
+# Install dependencies
+RUN npm install
+
+# Expose backend port
 EXPOSE 5000
 
-# ----------------------
-# Start Command
-# ----------------------
+# Start the server
 CMD ["npm", "start"]
